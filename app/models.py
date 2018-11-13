@@ -1,4 +1,7 @@
+import json
+from datetime import date
 from flask_sqlalchemy import SQLAlchemy
+
 
 db = SQLAlchemy()
 
@@ -15,31 +18,73 @@ class Contact(db.Model):
     phones = db.relationship('Phone', backref='person', lazy=True)
 
     # convert class to dict to later serialize to json
-    def to_dict(self):
-        return {'first_name': self.first_name,
-                'addresses': self.addresses}
+    def to_json(self):
+        return json.dumps(
+            {'id': self.id, 'first_name': self.first_name,
+             'last_name': self.last_name,
+             'addresses': list(map(lambda e: e.to_dict(), self.addresses)),
+             'emails': list(map(lambda e: e.to_dict(), self.emails)),
+             'phones': list(map(lambda e: e.to_dict(), self.phones)),
+             })
 
 
 class Address(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     address = db.Column(db.String(240), nullable=False)
-    person_id = db.Column(db.Integer, db.ForeignKey('contact.id'),
-                          nullable=False)
+    contact_id = db.Column(db.Integer, db.ForeignKey('contact.id'),
+                           nullable=False)
 
-    # convert to list
-    def to_list(self):
-        return [self.id, self.address]
+    def to_dict(self):
+        return {'id': self.id, 'address': self.address}
 
 
 class Email(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
-    person_id = db.Column(db.Integer, db.ForeignKey('contact.id'),
-                          nullable=False)
+    contact_id = db.Column(db.Integer, db.ForeignKey('contact.id'),
+                           nullable=False)
+
+    def to_dict(self):
+        return {'id': self.id, 'email': self.email}
 
 
 class Phone(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(120), nullable=False)
-    person_id = db.Column(db.Integer, db.ForeignKey('contact.id'),
-                          nullable=False)
+    contact_id = db.Column(db.Integer, db.ForeignKey('contact.id'),
+                           nullable=False)
+
+    def to_dict(self):
+        return {'id': self.id, 'phone': self.phone}
+
+
+def _str_to_date(s):
+    # takes a string in the format of YYYY-MM-DD and returns a date
+    year = int(s.split('-')[0])
+    month = int(s.split('-')[1])
+    day = int(s.split('-')[2])
+
+    return date(year, month, day)
+
+
+def new_contact(json_str):
+    s = json.loads(json_str)
+
+    contact = Contact(first_name=s['first_name'], last_name=s['last_name'],
+                      date_of_birth=_str_to_date(s['date_of_birth']))
+
+    db.session.add(contact)
+    db.session.commit()
+
+    for e in s['addresses']:
+        db.session.add(Address(contact_id=contact.id, address=e))
+
+    for e in s['emails']:
+        db.session.add(Email(contact_id=contact.id, email=e))
+
+    for e in s['phones']:
+        db.session.add(Phone(contact_id=contact.id, phone=e))
+
+    db.session.commit()
+
+    return contact
