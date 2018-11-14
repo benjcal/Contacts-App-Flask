@@ -1,39 +1,39 @@
 from flask import Blueprint, request
 from flask.json import jsonify
-from .models import db, Contact, gen_contact
-
+from .models import (contact_get,
+                     contact_update,
+                     contact_delete,
+                     contact_new,
+                     contact_get_all)
 
 contact = Blueprint('contact', __name__)
 
 
-# GET /contact/<id> -- get one contact
+# GET /contact/<id> -- get contact
 @contact.route('/<id>', methods=['GET'])
-def get_contact(id):
-    return jsonify(Contact.query.get(id).to_dict())
+def get(id):
+    return jsonify(contact_get(id))
 
 
-# PUT /contact/<id> -- get one contact
-@contact.route('/<id>', methods=['PUT'])
-def update_contact(id):
-    return jsonify(Contact.query.filter_by(id=id).first().to_dict())
+# PUT /contact/<id> -- update contact
+@contact.route('/<id>', methods=['PUT', 'PATCH'])
+def update(id):
+    return jsonify(contact_update(id, request.get_json()))
 
 
 # DELETE /contact/<id> -- get one contact
 @contact.route('/<id>', methods=['DELETE'])
-def delete_contact(id):
-    c = Contact.query.filter_by(id=id).first()
-    print(db.session.delete(c))
-    db.session.commit()
-    return jsonify(Contact.query.filter_by(id=id).first().to_dict())
+def delete(id):
+    return jsonify(contact_delete(id))
 
 
 # POST /contact -- create contact
 @contact.route('', methods=['POST'])
-def new_contcat():
-    return jsonify(gen_contact(request.get_json()).to_dict()), 201
+def new():
+    return jsonify(contact_new(request.get_json())), 201
 
 
 # GET /contact -- get contacts
 @contact.route('', methods=['GET'])
 def get_contacts():
-    return jsonify(list(map(lambda e: e.to_dict(), Contact.query.all())))
+    return jsonify(contact_get_all())
