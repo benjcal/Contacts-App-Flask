@@ -1,5 +1,6 @@
 from app import create_app
 from app.models import db, new_contact
+import json
 
 app = create_app()
 app.app_context().push()
@@ -19,4 +20,4 @@ contact_json = """\
 }
 """
 
-print(new_contact(contact_json).to_json())
+print(new_contact(json.loads(contact_json)))

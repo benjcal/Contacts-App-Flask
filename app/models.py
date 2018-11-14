@@ -1,4 +1,3 @@
-import json
 from datetime import date
 from flask_sqlalchemy import SQLAlchemy
 
@@ -18,14 +17,14 @@ class Contact(db.Model):
     phones = db.relationship('Phone', backref='person', lazy=True)
 
     # convert class to dict to later serialize to json
-    def to_json(self):
-        return json.dumps(
-            {'id': self.id, 'first_name': self.first_name,
-             'last_name': self.last_name,
-             'addresses': list(map(lambda e: e.to_dict(), self.addresses)),
-             'emails': list(map(lambda e: e.to_dict(), self.emails)),
-             'phones': list(map(lambda e: e.to_dict(), self.phones)),
-             })
+    def to_dict(self):
+        return {
+            'id': self.id, 'first_name': self.first_name,
+            'last_name': self.last_name,
+            'addresses': list(map(lambda e: e.to_dict(), self.addresses)),
+            'emails': list(map(lambda e: e.to_dict(), self.emails)),
+            'phones': list(map(lambda e: e.to_dict(), self.phones)),
+        }
 
 
 class Address(db.Model):
@@ -67,22 +66,24 @@ def _str_to_date(s):
     return date(year, month, day)
 
 
-def new_contact(json_str):
-    s = json.loads(json_str)
+def gen_contact(res_dict):
 
-    contact = Contact(first_name=s['first_name'], last_name=s['last_name'],
-                      date_of_birth=_str_to_date(s['date_of_birth']))
+    contact = Contact(
+        first_name=res_dict['first_name'],
+        last_name=res_dict['last_name'],
+        date_of_birth=_str_to_date(res_dict['date_of_birth'])
+    )
 
     db.session.add(contact)
     db.session.commit()
 
-    for e in s['addresses']:
+    for e in res_dict['addresses']:
         db.session.add(Address(contact_id=contact.id, address=e))
 
-    for e in s['emails']:
+    for e in res_dict['emails']:
         db.session.add(Email(contact_id=contact.id, email=e))
 
-    for e in s['phones']:
+    for e in res_dict['phones']:
         db.session.add(Phone(contact_id=contact.id, phone=e))
 
     db.session.commit()

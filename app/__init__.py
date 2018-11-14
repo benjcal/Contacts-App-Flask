@@ -2,6 +2,8 @@ import os
 from flask import Flask
 from .models import db
 
+from .contact import contact
+
 
 def create_app():
     app = Flask(__name__)
@@ -21,6 +23,8 @@ def create_app():
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    app.register_blueprint(contact, url_prefix='/contact')
 
     # sample route
     @app.route('/hello')
