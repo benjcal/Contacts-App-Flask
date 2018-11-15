@@ -22,8 +22,10 @@ class Contact(db.Model):
     # convert class to dict to later serialize to json
     def to_dict(self):
         return {
-            'id': self.id, 'first_name': self.first_name,
+            'id': self.id,
+            'first_name': self.first_name,
             'last_name': self.last_name,
+            'date_of_birth': self.date_of_birth.strftime('%Y-%m-%d'),
             'addresses': list(map(lambda e: e.to_dict(), self.addresses)),
             'emails': list(map(lambda e: e.to_dict(), self.emails)),
             'phones': list(map(lambda e: e.to_dict(), self.phones)),
@@ -108,7 +110,7 @@ def contact_update(id, data):
         c.last_name = data['last_name']
 
     if 'date_of_birth' in data:
-        c.date_of_birth = data['date_of_birth']
+        c.date_of_birth = _str_to_date(data['date_of_birth'])
 
     if 'addresses' in data:
         for i in data['addresses']:
@@ -165,17 +167,19 @@ def contact_new(data):
         date_of_birth=_str_to_date(data['date_of_birth'])
     )
 
+    print(contact.to_dict())
+
     db.session.add(contact)
     db.session.commit()
 
     for e in data['addresses']:
-        db.session.add(Address(contact_id=contact.id, address=e))
+        db.session.add(Address(contact_id=contact.id, address=e['address']))
 
     for e in data['emails']:
-        db.session.add(Email(contact_id=contact.id, email=e))
+        db.session.add(Email(contact_id=contact.id, email=e['email']))
 
     for e in data['phones']:
-        db.session.add(Phone(contact_id=contact.id, phone=e))
+        db.session.add(Phone(contact_id=contact.id, phone=e['phone']))
 
     db.session.commit()
 

@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_cors import CORS
 from .models import db
 
 from .contact import contact
@@ -7,6 +8,7 @@ from .contact import contact
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
 
     # path for sqlite3 file
     db_file_path = os.path.join(app.instance_path, 'contacts.db')
