@@ -101,40 +101,52 @@ def contact_get(id):
 
 
 def contact_update(id, data):
-    c = Contact.query.get(id)
+    contact = Contact.query.get(id)
 
     if 'first_name' in data:
-        c.first_name = data['first_name']
+        contact.first_name = data['first_name']
 
     if 'last_name' in data:
-        c.last_name = data['last_name']
+        contact.last_name = data['last_name']
 
     if 'date_of_birth' in data:
-        c.date_of_birth = _str_to_date(data['date_of_birth'])
+        contact.date_of_birth = _str_to_date(data['date_of_birth'])
 
     if 'addresses' in data:
-        for i in data['addresses']:
-            a = Address.query.get(i['id'])
-            a.address = i['address']
-            db.session.add(a)
-            db.session.commit()
+        for a in data['addresses']:
+            if 'id' not in a:
+                db.session.add(
+                    Address(contact_id=contact.id, address=a['address']))
+            else:
+                address = Address.query.get(a['id'])
+                address.address = a['address']
+                db.session.add(address)
+                db.session.commit()
 
     if 'phones' in data:
-        for i in data['phones']:
-            p = Phone.query.get(i['id'])
-            p.phone = i['phone']
-            db.session.add(p)
-            db.session.commit()
+        for p in data['phones']:
+            if 'id' not in p:
+                db.session.add(
+                    Phone(contact_id=contact.id, phone=p['phone']))
+            else:
+                phone = Phone.query.get(p['id'])
+                phone.phone = p['phone']
+                db.session.add(phone)
+                db.session.commit()
 
     if 'emails' in data:
-        for i in data['emails']:
-            e = Email.query.get(i['id'])
-            e.email = i['email']
-            db.session.add(e)
-            db.session.commit()
+        for e in data['emails']:
+            if 'id' not in e:
+                db.session.add(
+                    Email(contact_id=contact.id, email=e['email']))
+            else:
+                email = Email.query.get(e['id'])
+                email.email = e['email']
+                db.session.add(email)
+                db.session.commit()
 
     db.session.commit()
-    return c.to_dict()
+    return contact.to_dict()
 
 
 def contact_delete(id):
