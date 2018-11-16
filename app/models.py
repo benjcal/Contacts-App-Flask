@@ -167,8 +167,6 @@ def contact_new(data):
         date_of_birth=_str_to_date(data['date_of_birth'])
     )
 
-    print(contact.to_dict())
-
     db.session.add(contact)
     db.session.commit()
 
