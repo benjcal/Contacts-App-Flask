@@ -11,10 +11,10 @@ def create_app():
     CORS(app)
 
     # path for sqlite3 file
-    db_file_path = os.path.join(app.instance_path, 'contacts.db')
+    # db_file_path = os.path.join(app.instance_path, 'contacts.db')
 
     app.config.from_mapping(
-        SQLALCHEMY_DATABASE_URI=f'sqlite:///{db_file_path}',
+        SQLALCHEMY_DATABASE_URI='sqlite:////tmp/contacts.db',
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 

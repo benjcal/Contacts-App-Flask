@@ -9,6 +9,8 @@ setup(
     install_requires=[
         'flask',
         'flask-cors',
-        'Flask-SQLAlchemy'
+        'Flask-SQLAlchemy',
+        'wheel',
+        'waitress'
     ],
 )
